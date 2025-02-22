@@ -8,10 +8,14 @@ import java.util.List;
 public class CASAAdapter implements CASAInterface {
 
     @Override
-    public String getCustomerNameByAccountNumber(String accountNumber) {
-        List<CASACustomerData> customerData = CASASystem.getCASACustomerInformation(accountNumber);
+    public CustomerData getCustomerDataByAccountNumber(String accountNumber) {
+        List<CASACustomerData> customerDataList = CASASystem.getCASACustomerInformation(accountNumber);
 
-        if (customerData.size() == 0) throw new RuntimeException("No such user");
-        else return customerData.getFirst().name();
+        if (customerDataList.size() == 0) throw new RuntimeException("No such user");
+        else return new CustomerData(
+                customerDataList.getFirst().name(),
+                customerDataList.getFirst().phoneNumber(),
+                customerDataList.getFirst().emailAddress()
+        );
     }
 }

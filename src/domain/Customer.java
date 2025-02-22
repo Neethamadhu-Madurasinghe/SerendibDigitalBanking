@@ -1,5 +1,7 @@
 package domain;
 
+import domain.verification.VerificationStrategy;
+
 public class Customer {
     private int id;
     private Language language;
@@ -14,6 +16,8 @@ public class Customer {
     private String displayName;
     private boolean isVerified;
     private OTPChannel otpChannel;
+
+    private VerificationStrategy verificationStrategy;
 
 
     public Customer(int id) {
@@ -118,5 +122,13 @@ public class Customer {
 
     public void setOtpChannel(OTPChannel otpChannel) {
         this.otpChannel = otpChannel;
+    }
+
+    public void setVerificationStrategy(VerificationStrategy verificationStrategy) {
+        this.verificationStrategy = verificationStrategy;
+    }
+
+    public void verify() {
+        verificationStrategy.verifyAccount(this);
     }
 }

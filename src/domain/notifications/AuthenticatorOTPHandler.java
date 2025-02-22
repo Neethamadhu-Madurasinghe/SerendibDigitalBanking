@@ -1,5 +1,6 @@
 package domain.notifications;
 
+import application.AnsiColors;
 import domain.OTPChannel;
 import libraries.AuthenticatorLibrary;
 import domain.Customer;
@@ -16,11 +17,7 @@ public class AuthenticatorOTPHandler extends OTPHandler {
             return AuthenticatorLibrary.sendOTP(customer.getEmail(), message);
 
         } else {
-            boolean authenticatorResult = false;
-            if (customer.getEmail() != null) {
-                authenticatorResult = AuthenticatorLibrary.sendOTP(customer.getEmail(), message);
-            }
-            return authenticatorResult;
+            return false;
         }
     }
 }
