@@ -2,7 +2,6 @@ package domain.services;
 
 import application.AnsiColors;
 import domain.Customer;
-import domain.CustomerBuilder;
 import domain.Language;
 import domain.casa.CASAInterface;
 import domain.casa.CustomerData;
