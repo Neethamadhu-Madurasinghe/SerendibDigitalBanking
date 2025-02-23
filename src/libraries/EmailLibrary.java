@@ -1,6 +1,6 @@
 package libraries;
 
-import application.AnsiColors;
+import application_layer.AnsiColors;
 
 public class EmailLibrary {
     public static boolean sendEmail(String emailAddress, String message) {

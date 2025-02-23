@@ -1,6 +1,6 @@
 package libraries;
 
-import application.AnsiColors;
+import application_layer.AnsiColors;
 
 public class SMSLibrary {
     public static boolean sendSMS(String phoneNumber, String message) {
