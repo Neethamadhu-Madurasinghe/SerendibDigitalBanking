@@ -17,7 +17,7 @@ public class SMSOTPHandler extends OTPHandler {
 
         } else {
             boolean smsResult = false;
-            if (customer.getMobileNumber() != null) {
+            if (customer.getOtpChannel() == null && customer.getMobileNumber() != null) {
                 smsResult = SMSLibrary.sendSMS(customer.getMobileNumber(), message);
             }
             return next.handleRequest(customer, message) || smsResult;

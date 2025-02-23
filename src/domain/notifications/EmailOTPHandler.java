@@ -17,7 +17,7 @@ public class EmailOTPHandler extends OTPHandler {
 
         } else {
             boolean emailResult = false;
-            if (customer.getEmail() != null) {
+            if (customer.getOtpChannel() == null && customer.getEmail() != null) {
                 emailResult = EmailLibrary.sendEmail(customer.getEmail(), message);
             }
             return next.handleRequest(customer, message) || emailResult;
