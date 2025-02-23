@@ -1,14 +1,12 @@
 package domain.services;
 
 import domain.Customer;
-import domain.notifications.AuthenticatorOTPHandler;
-import domain.notifications.EmailOTPHandler;
-import domain.notifications.OTPHandler;
-import domain.notifications.SMSOTPHandler;
+import domain.notifications.*;
 
 
 public class NotificationServiceImpl implements NotificationService {
     private OTPHandler otpHandler;
+    private NotificationHandler notificationHandler;
 
 
     public NotificationServiceImpl() {
@@ -19,16 +17,23 @@ public class NotificationServiceImpl implements NotificationService {
         smsOtpHandler.setNextHandler(emailOtpHandler);
         emailOtpHandler.setNextHandler(authenticatorOtpHandler);
         this.otpHandler = smsOtpHandler;
+
+        NotificationHandler emailNotificationHandler = new EmailNotificationHandler();
+        NotificationHandler smsNotificationhandler = new SMSNotificationHandler();
+
+        smsNotificationhandler.setNextHandler(emailNotificationHandler);
+        this.notificationHandler = smsNotificationhandler;
+
     }
 
 
     @Override
     public boolean sendNotification(Customer customer, String message) {
-        return false;
+        return this.notificationHandler.handleRequest(customer, message);
     }
 
     @Override
     public boolean sendOtp(Customer customer, String otp) {
-        return otpHandler.handleRequest(customer, otp);
+        return this.otpHandler.handleRequest(customer, otp);
     }
 }

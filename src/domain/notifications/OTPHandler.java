@@ -1,5 +1,5 @@
 package domain.notifications;
 
-public abstract class OTPHandler implements NotificationHandler {
-    protected NotificationHandler next;
+public abstract class OTPHandler implements INotificationHandler {
+    protected INotificationHandler next;
 }

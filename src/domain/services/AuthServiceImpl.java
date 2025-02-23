@@ -120,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
                             System.out.println("Requesting OTP again");
                             loopInput = false;
                         } else {
-                            System.out.println(AnsiColors.RED + "Registration failed" + AnsiColors.RESET);
+                            System.out.println(AnsiColors.RED + "Registration failed: Locking the account" + AnsiColors.RESET);
                             return null;
                         }
                         break;
@@ -137,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
 //        Verification
 
         while(loopInput) {
-            System.out.println("Select account verification method\n1. Call Centre\n2. Branch\n");
+            System.out.println("Select account verification method\n1. Contact Call Centre\n2. At a Serendib Branch\n");
             input = inputScanner.nextLine();
 
             switch (input) {
@@ -154,9 +154,10 @@ public class AuthServiceImpl implements AuthService {
 
             }
 
-            newCustomer.verify();
+
         }
 
+        newCustomer.verify();
         loopInput = true;
 
         while(loopInput) {
@@ -192,13 +193,13 @@ public class AuthServiceImpl implements AuthService {
 
 
 //        Send Email
+        this.notificationService.sendNotification(newCustomer, "Your Serendib account has been created");
 
+        System.out.println("Onboarding is complete !!");
         System.out.println("Ok now login using user name and password");
 
 
-
-
-        return null;
+        return newCustomer;
     }
 
     @Override

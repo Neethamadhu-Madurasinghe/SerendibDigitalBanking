@@ -1,13 +1,12 @@
 package domain.notifications;
 
-import application.AnsiColors;
 import domain.OTPChannel;
 import libraries.AuthenticatorLibrary;
 import domain.Customer;
 
 public class AuthenticatorOTPHandler extends OTPHandler {
     @Override
-    public void setNextHandler(NotificationHandler next) {
+    public void setNextHandler(INotificationHandler next) {
 
     }
 

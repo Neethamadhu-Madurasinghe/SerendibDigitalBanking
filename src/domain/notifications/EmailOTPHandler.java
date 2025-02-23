@@ -1,13 +1,12 @@
 package domain.notifications;
 
-import application.AnsiColors;
 import domain.Customer;
 import domain.OTPChannel;
 import libraries.EmailLibrary;
 
 public class EmailOTPHandler extends OTPHandler {
     @Override
-    public void setNextHandler(NotificationHandler next) {
+    public void setNextHandler(INotificationHandler next) {
         this.next = next;
     }
 
