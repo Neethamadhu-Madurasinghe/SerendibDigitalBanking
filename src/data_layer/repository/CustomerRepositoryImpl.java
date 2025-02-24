@@ -7,8 +7,24 @@ import java.util.List;
 import java.util.Optional;
 
 public class CustomerRepositoryImpl implements CustomerRepository {
-    List<Customer> savedCustomers = new LinkedList<>();
+    private List<Customer> savedCustomers = new LinkedList<>();
+    private static CustomerRepository instance = null;
 
+//    Assuming this has all the database connecting logic, we can add singleton pattern to this as well
+    public static CustomerRepository getInstance() {
+        if (instance != null) {
+            synchronized (CustomerRepositoryImpl.class) {
+                if (instance != null) {
+                    instance = new CustomerRepositoryImpl();
+                }
+            }
+        }
+
+        return instance;
+    }
+
+
+    private CustomerRepositoryImpl() {}
 
     @Override
     public Customer saveCustomer(Customer customer) {

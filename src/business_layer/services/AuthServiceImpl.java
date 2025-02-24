@@ -89,6 +89,7 @@ public class AuthServiceImpl implements AuthService {
             if (input.length() >= 5) {
                 try {
                     CustomerData data = CASASystem.getCustomerDataByAccountNumber(input);
+                    newCustomer.setCASANumber(input);
                     newCustomer.setName(data.name());
                     newCustomer.setMobileNumber(data.phoneNumber());
                     newCustomer.setEmail(data.email());

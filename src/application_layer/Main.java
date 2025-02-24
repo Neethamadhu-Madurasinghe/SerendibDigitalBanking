@@ -16,9 +16,9 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         CASAInterface CASAAdapter = new CASAAdapter();
-        NotificationService notificationService = new NotificationServiceImpl();
+        NotificationService notificationService = NotificationServiceImpl.getInstance();
         IDGenerator idGenerator = IDGenerator.getInstance();
-        CustomerRepository customerRepository = new CustomerRepositoryImpl();
+        CustomerRepository customerRepository = CustomerRepositoryImpl.getInstance();
 
 
         AuthService service = new AuthServiceImpl(CASAAdapter, notificationService, idGenerator, customerRepository);

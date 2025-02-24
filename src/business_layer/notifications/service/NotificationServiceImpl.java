@@ -7,9 +7,24 @@ import business_layer.notifications.handlers.*;
 public class NotificationServiceImpl implements NotificationService {
     private OTPHandler otpHandler;
     private NotificationHandler notificationHandler;
+    private static NotificationServiceImpl instance = null;
 
 
-    public NotificationServiceImpl() {
+//    Thread safe singleton
+    public static NotificationService getInstance() {
+        if (instance == null) {
+            synchronized (NotificationServiceImpl.class) {
+                if (instance == null) {
+                    instance = new NotificationServiceImpl();
+                }
+            }
+        }
+
+        return instance;
+    }
+
+
+    private NotificationServiceImpl() {
         OTPHandler emailOtpHandler = new EmailOTPHandler();
         OTPHandler smsOtpHandler = new SMSOTPHandler();
         OTPHandler authenticatorOtpHandler = new AuthenticatorOTPHandler();
