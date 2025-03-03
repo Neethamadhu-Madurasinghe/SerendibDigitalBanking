@@ -1,6 +1,6 @@
 package business_layer.notifications.service;
 
-import business_layer.Customer;
+import business_layer.User;
 import business_layer.notifications.handlers.*;
 
 
@@ -43,12 +43,12 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     @Override
-    public boolean sendNotification(Customer customer, String message) {
-        return this.notificationHandler.handleRequest(customer, message);
+    public boolean sendNotification(User user, String message) {
+        return this.notificationHandler.handleRequest(user, message);
     }
 
     @Override
-    public boolean sendOtp(Customer customer, String otp) {
-        return this.otpHandler.handleRequest(customer, otp);
+    public boolean sendOtp(User user, String otp) {
+        return this.otpHandler.handleRequest(user, otp);
     }
 }

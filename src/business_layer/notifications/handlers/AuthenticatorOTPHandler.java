@@ -2,7 +2,7 @@ package business_layer.notifications.handlers;
 
 import business_layer.OTPChannel;
 import libraries.AuthenticatorLibrary;
-import business_layer.Customer;
+import business_layer.User;
 
 public class AuthenticatorOTPHandler extends OTPHandler {
     @Override
@@ -11,9 +11,9 @@ public class AuthenticatorOTPHandler extends OTPHandler {
     }
 
     @Override
-    public boolean handleRequest(Customer customer, String message) {
-        if (customer.getOtpChannel() == OTPChannel.AUTHENTICATOR_APP) {
-            return AuthenticatorLibrary.sendOTP(customer.getEmail(), message);
+    public boolean handleRequest(User user, String message) {
+        if (user.getOtpChannel() == OTPChannel.AUTHENTICATOR_APP) {
+            return AuthenticatorLibrary.sendOTP(user.getEmail(), message);
 
         } else {
             return false;

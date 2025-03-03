@@ -1,6 +1,6 @@
 package business_layer.notifications.handlers;
 
-import business_layer.Customer;
+import business_layer.User;
 import business_layer.OTPChannel;
 import libraries.EmailLibrary;
 
@@ -11,16 +11,16 @@ public class EmailOTPHandler extends OTPHandler {
     }
 
     @Override
-    public boolean handleRequest(Customer customer, String message) {
-        if (customer.getOtpChannel() == OTPChannel.EMAIL) {
-            return EmailLibrary.sendEmail(customer.getEmail(), message);
+    public boolean handleRequest(User user, String message) {
+        if (user.getOtpChannel() == OTPChannel.EMAIL) {
+            return EmailLibrary.sendEmail(user.getEmail(), message);
 
         } else {
             boolean emailResult = false;
-            if (customer.getOtpChannel() == null && customer.getEmail() != null) {
-                emailResult = EmailLibrary.sendEmail(customer.getEmail(), message);
+            if (user.getOtpChannel() == null && user.getEmail() != null) {
+                emailResult = EmailLibrary.sendEmail(user.getEmail(), message);
             }
-            return next.handleRequest(customer, message) || emailResult;
+            return next.handleRequest(user, message) || emailResult;
         }
 
     }

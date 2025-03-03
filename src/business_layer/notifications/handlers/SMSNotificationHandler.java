@@ -1,6 +1,6 @@
 package business_layer.notifications.handlers;
 
-import business_layer.Customer;
+import business_layer.User;
 import libraries.SMSLibrary;
 
 public class SMSNotificationHandler extends NotificationHandler {
@@ -10,12 +10,12 @@ public class SMSNotificationHandler extends NotificationHandler {
     }
 
     @Override
-    public boolean handleRequest(Customer customer, String message) {
+    public boolean handleRequest(User user, String message) {
         boolean smsResult = false;
-        if (customer.getMobileNumber() != null) {
-            smsResult = SMSLibrary.sendSMS(customer.getMobileNumber(), message);
+        if (user.getMobileNumber() != null) {
+            smsResult = SMSLibrary.sendSMS(user.getMobileNumber(), message);
         }
-        return next.handleRequest(customer, message) || smsResult;
+        return next.handleRequest(user, message) || smsResult;
 
     }
 }

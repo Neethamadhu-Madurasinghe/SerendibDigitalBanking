@@ -2,11 +2,12 @@ package business_layer.services;
 
 import application_layer.AnsiColors;
 import business_layer.Customer;
+import business_layer.User;
 import business_layer.exceptions.CustomException;
 import business_layer.notifications.service.NotificationService;
 import business_layer.support.IDGenerator;
 import data_layer.casa.CASAInterface;
-import data_layer.repository.CustomerRepository;
+import data_layer.repository.UserRepository;
 
 import java.util.Optional;
 import java.util.Scanner;
@@ -17,13 +18,13 @@ public abstract class AuthService {
     protected CASAInterface CASASystem;
     protected NotificationService notificationService;
     protected IDGenerator idGenerator;
-    protected CustomerRepository customerRepository;
+    protected UserRepository customerRepository;
 
     public AuthService(
             CASAInterface CASASystem,
             NotificationService notificationService,
             IDGenerator idGenerator,
-            CustomerRepository customerRepository
+            UserRepository customerRepository
     ) {
         this.CASASystem = CASASystem;
         this.notificationService = notificationService;
@@ -33,31 +34,32 @@ public abstract class AuthService {
     }
 
 
-    abstract public Customer onboard();
+    abstract User createUser(String type);
+    abstract public User onboard();
     abstract Customer selectLanguage(Customer customer);
     abstract Customer takeNIC(Customer customer);
     abstract Customer fetchCASACustomer(Customer customer) throws CustomException;
     abstract Customer verifyUser(Customer customer);
     abstract String takeUsernameAndPassword();
-    abstract Customer handleOTP(Customer customer) throws CustomException;
+    abstract User handleOTP(User user) throws CustomException;
 
 
-    public Customer login() {
+    public User login() {
         System.out.println(AnsiColors.YELLOW + "=============== Login using 2FA ==============" + AnsiColors.RESET);
 
 
         boolean loopInput = true;
         String input = "";
-        Customer currentCustomer = null;
+        User currentUser = null;
 
         while(loopInput) {
             String userName = this.takeUsernameAndPassword();
             String password = userName;
 
-            Optional<Customer> optionalCustomer = this.customerRepository.getCustomerByUsernameAndPassword(userName, password);
+            Optional<User> optionalCustomer = this.customerRepository.getCustomerByUsernameAndPassword(userName, password);
 
             if (optionalCustomer.isPresent()) {
-                currentCustomer = optionalCustomer.get();
+                currentUser = optionalCustomer.get();
                 System.out.println(AnsiColors.GREEN + "User found" + AnsiColors.RESET);
                 loopInput = false;
             }
@@ -68,7 +70,7 @@ public abstract class AuthService {
         }
 
         try {
-            currentCustomer = this.handleOTP(currentCustomer);
+            currentUser = this.handleOTP(currentUser);
         } catch (CustomException e) {
             System.out.println(AnsiColors.RED + e.getMessage() + AnsiColors.RESET);
             return null;
@@ -79,6 +81,6 @@ public abstract class AuthService {
         System.out.println(AnsiColors.GREEN + "This is your dashboard" + AnsiColors.RESET);
         System.out.println();
 
-        return currentCustomer;
+        return currentUser;
     }
 }

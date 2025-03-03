@@ -1,6 +1,6 @@
 package business_layer.notifications.handlers;
 
-import business_layer.Customer;
+import business_layer.User;
 import libraries.EmailLibrary;
 
 public class EmailNotificationHandler extends NotificationHandler{
@@ -10,10 +10,10 @@ public class EmailNotificationHandler extends NotificationHandler{
     }
 
     @Override
-    public boolean handleRequest(Customer customer, String message) {
+    public boolean handleRequest(User user, String message) {
         boolean emailResult = false;
-        if (customer.getEmail() != null) {
-            emailResult = EmailLibrary.sendEmail(customer.getEmail(), message);
+        if (user.getEmail() != null) {
+            emailResult = EmailLibrary.sendEmail(user.getEmail(), message);
         }
         return emailResult;
 

@@ -1,8 +1,9 @@
 package business_layer.services;
 
 import application_layer.AnsiColors;
+import business_layer.User;
 import business_layer.exceptions.CustomException;
-import data_layer.repository.CustomerRepository;
+import data_layer.repository.UserRepository;
 import business_layer.Customer;
 import business_layer.Language;
 import business_layer.OTPChannel;
@@ -13,7 +14,7 @@ import business_layer.support.IDGenerator;
 import business_layer.verification.VerifyUsingBranch;
 import business_layer.verification.VerifyUsingCallCentre;
 
-import java.util.Optional;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class AuthServiceImpl extends AuthService {
@@ -22,16 +23,22 @@ public class AuthServiceImpl extends AuthService {
     public AuthServiceImpl(CASAInterface CASASystem,
                            NotificationService notificationService,
                            IDGenerator idGenerator,
-                           CustomerRepository customerRepository) {
+                           UserRepository customerRepository) {
         super(CASASystem, notificationService, idGenerator, customerRepository);
     }
 
     @Override
-    public Customer onboard() {
+    User createUser(String type) {
+        if (type.toUpperCase(Locale.ROOT).equals("CUSTOMER")) return new Customer(this.idGenerator.nextId());
+        else throw new CustomException("No such user");
+    }
+
+    @Override
+    public User onboard() {
         Scanner inputScanner = new Scanner(System.in);
         boolean loopInput = true;
         String input = "";
-        Customer newCustomer = new Customer(idGenerator.nextId());
+        Customer newCustomer = (Customer) this.createUser("CUSTOMER");
 
         System.out.println(AnsiColors.YELLOW + "=============== Registering customer ==============" + AnsiColors.RESET);
 
@@ -49,7 +56,7 @@ public class AuthServiceImpl extends AuthService {
 
 
         try {
-            newCustomer = this.handleOTP(newCustomer);
+            newCustomer = (Customer) this.handleOTP(newCustomer);
         } catch (CustomException e) {
             System.out.println(AnsiColors.RED + e.getMessage() + AnsiColors.RESET);
             return null;
@@ -87,7 +94,7 @@ public class AuthServiceImpl extends AuthService {
 //        Set customer's otp preference to Authenticator app randomly - we can take it as an input if needed
         newCustomer.setOtpChannel(OTPChannel.AUTHENTICATOR_APP);
 
-        this.customerRepository.saveCustomer(newCustomer);
+        this.customerRepository.saveUser(newCustomer);
         return login();
     }
 
@@ -112,14 +119,14 @@ public class AuthServiceImpl extends AuthService {
     }
 
     @Override
-    public Customer handleOTP(Customer currentCustomer) {
+    public User handleOTP(User user) {
         String input = "";
         String otp = "1234";
         int otpAttempts = 3;
 
         while (otpAttempts > 0) {
             System.out.println(AnsiColors.GREEN + "Sending OTP for the " + (3 - otpAttempts + 1) + " time. (" + otp + ")" + AnsiColors.RESET);
-            notificationService.sendOtp(currentCustomer, otp);
+            notificationService.sendOtp(user, otp);
 
             while (true) {
                 System.out.println("Enter OTP: ");
@@ -129,8 +136,8 @@ public class AuthServiceImpl extends AuthService {
                 switch (input) {
                     case "1":
                         System.out.println(AnsiColors.GREEN + "OTP is correct" + AnsiColors.RESET);
-                        currentCustomer.setOtp(1234);
-                        return currentCustomer;
+                        user.setOtp(1234);
+                        return user;
                     case "2":
                         otpAttempts--;
                         if (otpAttempts >= 1) {

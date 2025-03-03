@@ -1,6 +1,6 @@
 package business_layer.notifications.handlers;
 
-import business_layer.Customer;
+import business_layer.User;
 import business_layer.OTPChannel;
 import libraries.SMSLibrary;
 
@@ -11,16 +11,16 @@ public class SMSOTPHandler extends OTPHandler {
     }
 
     @Override
-    public boolean handleRequest(Customer customer, String message) {
-        if (customer.getOtpChannel() == OTPChannel.SMS) {
-            return SMSLibrary.sendSMS(customer.getMobileNumber(), message);
+    public boolean handleRequest(User user, String message) {
+        if (user.getOtpChannel() == OTPChannel.SMS) {
+            return SMSLibrary.sendSMS(user.getMobileNumber(), message);
 
         } else {
             boolean smsResult = false;
-            if (customer.getOtpChannel() == null && customer.getMobileNumber() != null) {
-                smsResult = SMSLibrary.sendSMS(customer.getMobileNumber(), message);
+            if (user.getOtpChannel() == null && user.getMobileNumber() != null) {
+                smsResult = SMSLibrary.sendSMS(user.getMobileNumber(), message);
             }
-            return next.handleRequest(customer, message) || smsResult;
+            return next.handleRequest(user, message) || smsResult;
         }
 
     }

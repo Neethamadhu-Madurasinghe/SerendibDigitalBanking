@@ -7,8 +7,8 @@ import business_layer.services.AuthServiceImpl;
 import business_layer.notifications.service.NotificationService;
 import business_layer.notifications.service.NotificationServiceImpl;
 import business_layer.support.IDGenerator;
-import data_layer.repository.CustomerRepository;
-import data_layer.repository.CustomerRepositoryImpl;
+import data_layer.repository.UserRepository;
+import data_layer.repository.UserRepositoryImpl;
 
 import java.util.Scanner;
 
@@ -17,7 +17,7 @@ public class Main {
         CASAInterface CASAAdapter = new CASAAdapter();
         NotificationService notificationService = NotificationServiceImpl.getInstance();
         IDGenerator idGenerator = IDGenerator.getInstance();
-        CustomerRepository customerRepository = CustomerRepositoryImpl.getInstance();
+        UserRepository customerRepository = UserRepositoryImpl.getInstance();
 
 
         AuthService service = new AuthServiceImpl(CASAAdapter, notificationService, idGenerator, customerRepository);
