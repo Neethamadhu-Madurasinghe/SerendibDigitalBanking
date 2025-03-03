@@ -6,4 +6,7 @@ public interface AuthService {
     public Customer onboard();
 
     public Customer login();
+
+    public String takeUsernameAndPassword();
+    public boolean handleOTP(Customer customer);
 }

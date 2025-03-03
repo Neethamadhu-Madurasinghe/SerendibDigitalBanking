@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Scanner;
 
 public class AuthServiceImpl implements AuthService {
+    Scanner inputScanner = new Scanner(System.in);
     private CASAInterface CASASystem;
     private NotificationService notificationService;
     private IDGenerator idGenerator;
@@ -104,44 +105,9 @@ public class AuthServiceImpl implements AuthService {
             }
         }
 
-        loopInput = true;
 
-//        OTP
-        String otp = "1234";
-        int otpAttempts = 3;
-
-        while (otpAttempts > 0) {
-            System.out.println(AnsiColors.GREEN + "Sending OTP for the " + (3 - otpAttempts + 1) + " time. (" + otp + ")" + AnsiColors.RESET);
-            notificationService.sendOtp(newCustomer, otp);
-
-            loopInput = true;
-            while(loopInput) {
-                System.out.println("Enter OTP: ");
-                System.out.println("Select OPT option\n1. Enter correct OTP\n2. Request new OTP\n3. Enter incorrect OTP\n");
-                input = inputScanner.nextLine();
-
-                switch (input) {
-                    case "1":
-                        System.out.println("OTP is Correct");
-                        loopInput = false;
-                        otpAttempts = 0;
-                        break;
-                    case "2":
-                        otpAttempts--;
-                        if (otpAttempts >= 1) {
-                            System.out.println("Requesting OTP again");
-                            loopInput = false;
-                        } else {
-                            System.out.println(AnsiColors.RED + "Registration failed: Locking the account" + AnsiColors.RESET);
-                            return null;
-                        }
-                        break;
-                    default:
-                        System.out.println(AnsiColors.RED + "Invalid OTP please try again" + AnsiColors.RESET);
-
-                }
-            }
-
+        if (!this.handleOTP(newCustomer)) {
+            return null;
         }
 
         loopInput = true;
@@ -170,24 +136,12 @@ public class AuthServiceImpl implements AuthService {
         }
 
         newCustomer.verify();
-        loopInput = true;
-
-        while(loopInput) {
-            System.out.println("Enter username and password: ");
-            input = inputScanner.nextLine();
-
-//            Validation
-            if (input.length() >= 5) {
-                newCustomer.setUserName(input);
-                newCustomer.setPassword(input);
-                loopInput = false;
-
-            } else {
-                System.out.println(AnsiColors.RED + "Username and password validation failed" + AnsiColors.RESET);
-            }
-        }
 
         loopInput = true;
+
+        input = this.takeUsernameAndPassword();
+        newCustomer.setUserName(input);
+        newCustomer.setPassword(input);
 
         while(loopInput) {
             System.out.println("Enter display name: ");
@@ -222,39 +176,61 @@ public class AuthServiceImpl implements AuthService {
     public Customer login() {
         System.out.println(AnsiColors.YELLOW + "=============== Login using 2FA ==============" + AnsiColors.RESET);
 
-        Scanner inputScanner = new Scanner(System.in);
+
         boolean loopInput = true;
         String input = "";
         Customer currentCustomer = null;
 
         while(loopInput) {
+            String userName = this.takeUsernameAndPassword();
+            String password = userName;
+
+            Optional<Customer> optionalCustomer = this.customerRepository.getCustomerByUsernameAndPassword(userName, password);
+
+            if (optionalCustomer.isPresent()) {
+                currentCustomer = optionalCustomer.get();
+                System.out.println(AnsiColors.GREEN + "User found" + AnsiColors.RESET);
+                loopInput = false;
+            }
+            else {
+                System.out.println(AnsiColors.RED + "No User found" + AnsiColors.RESET);
+                return null;
+            }
+        }
+
+        if (!this.handleOTP(currentCustomer)) {
+            return null;
+        }
+
+        System.out.println(AnsiColors.GREEN + "Login successful" + AnsiColors.RESET);
+        System.out.println(AnsiColors.GREEN + "This is your dashboard" + AnsiColors.RESET);
+        System.out.println();
+
+        return currentCustomer;
+    }
+
+    @Override
+    public String takeUsernameAndPassword() {
+        String input = "";
+
+        while(true) {
             System.out.println("Enter username and password: ");
             input = inputScanner.nextLine();
             String userName = input;
-            String password = input;
 
 //            Validation
             if (input.length() >= 5) {
-                Optional<Customer> optionalCustomer = this.customerRepository.getCustomerByUsernameAndPassword(userName, password);
-
-                if (optionalCustomer.isPresent()) {
-                    currentCustomer = optionalCustomer.get();
-                    System.out.println(AnsiColors.GREEN + "User found" + AnsiColors.RESET);
-                    loopInput = false;
-                }
-                else {
-                    System.out.println(AnsiColors.RED + "No User found" + AnsiColors.RESET);
-                    return null;
-                }
-
+                return userName;
 
             } else {
                 System.out.println(AnsiColors.RED + "Username and password validation failed" + AnsiColors.RESET);
             }
         }
+    }
 
-
-//        OTP
+    @Override
+    public boolean handleOTP(Customer currentCustomer) {
+        String input = "";
         String otp = "1234";
         int otpAttempts = 3;
 
@@ -262,8 +238,7 @@ public class AuthServiceImpl implements AuthService {
             System.out.println(AnsiColors.GREEN + "Sending OTP for the " + (3 - otpAttempts + 1) + " time. (" + otp + ")" + AnsiColors.RESET);
             notificationService.sendOtp(currentCustomer, otp);
 
-            loopInput = true;
-            while(loopInput) {
+            while(true) {
                 System.out.println("Enter OTP: ");
                 System.out.println("Select OPT option\n1. Enter correct OTP\n2. Request new OTP\n3. Enter incorrect OTP\n");
                 input = inputScanner.nextLine();
@@ -271,17 +246,14 @@ public class AuthServiceImpl implements AuthService {
                 switch (input) {
                     case "1":
                         System.out.println(AnsiColors.GREEN + "OTP is correct" + AnsiColors.RESET);
-                        loopInput = false;
-                        otpAttempts = 0;
-                        break;
+                        return true;
                     case "2":
                         otpAttempts--;
                         if (otpAttempts >= 1) {
                             System.out.println("Requesting OTP again");
-                            loopInput = false;
                         } else {
                             System.out.println(AnsiColors.RED + "Login failed: Locking the account" + AnsiColors.RESET);
-                            return null;
+                            return false;
                         }
                         break;
                     default:
@@ -291,13 +263,8 @@ public class AuthServiceImpl implements AuthService {
             }
 
         }
-
-        loopInput = true;
-
-        System.out.println(AnsiColors.GREEN + "Login successful" + AnsiColors.RESET);
-        System.out.println(AnsiColors.GREEN + "This is your dashboard" + AnsiColors.RESET);
-        System.out.println();
-
-        return currentCustomer;
+        return false;
     }
+
+
 }
