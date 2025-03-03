@@ -35,7 +35,6 @@ public abstract class AuthService implements IAuthService {
 
 
     abstract User createUser(String type);
-    abstract public User onboard();
 
     public User login() {
         System.out.println(AnsiColors.YELLOW + "=============== Login using 2FA ==============" + AnsiColors.RESET);

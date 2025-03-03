@@ -28,9 +28,9 @@ public class UserRepositoryImpl implements UserRepository {
     private UserRepositoryImpl() {}
 
     @Override
-    public User saveUser(User customer) {
-        this.savedUsers.add(customer);
-        return customer;
+    public User saveUser(User user) {
+        this.savedUsers.add(user);
+        return user;
     }
 
     @Override
