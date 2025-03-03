@@ -5,7 +5,6 @@ import business_layer.User;
 import business_layer.exceptions.CustomException;
 import data_layer.repository.UserRepository;
 import business_layer.Customer;
-import business_layer.Language;
 import business_layer.OTPChannel;
 import data_layer.casa.CASAInterface;
 import data_layer.casa.CustomerData;
@@ -28,7 +27,7 @@ public class AuthServiceImpl extends AuthService {
     }
 
     @Override
-    User createUser(String type) {
+    public User createUser(String type) {
         if (type.toUpperCase(Locale.ROOT).equals("CUSTOMER")) return new Customer(this.idGenerator.nextId());
         else throw new CustomException("No such user");
     }
@@ -42,14 +41,14 @@ public class AuthServiceImpl extends AuthService {
 
         System.out.println(AnsiColors.YELLOW + "=============== Registering customer ==============" + AnsiColors.RESET);
 
-        newCustomer = this.selectLanguage(newCustomer);
+        newCustomer = (Customer) this.selectLanguage(newCustomer);
         System.out.println("You selected " + newCustomer.getLanguage());
 
-        newCustomer = this.takeNIC(newCustomer);
+        newCustomer = (Customer) this.takeNIC(newCustomer);
 
 
         try {
-            newCustomer = this.fetchCASACustomer(newCustomer);
+            newCustomer = (Customer) this.getCASAUserDetails(newCustomer);
         } catch (CustomException e) {
             System.out.println(AnsiColors.RED + e.getMessage() + AnsiColors.RESET);
         }
@@ -94,69 +93,12 @@ public class AuthServiceImpl extends AuthService {
 //        Set customer's otp preference to Authenticator app randomly - we can take it as an input if needed
         newCustomer.setOtpChannel(OTPChannel.AUTHENTICATOR_APP);
 
-        this.customerRepository.saveUser(newCustomer);
+        this.userRepository.saveUser(newCustomer);
         return login();
     }
 
 
-    @Override
-    public String takeUsernameAndPassword() {
-        String input = "";
 
-        while (true) {
-            System.out.println("Enter username and password: ");
-            input = inputScanner.nextLine();
-            String userName = input;
-
-//            Validation
-            if (input.length() >= 5) {
-                return userName;
-
-            } else {
-                System.out.println(AnsiColors.RED + "Username and password validation failed" + AnsiColors.RESET);
-            }
-        }
-    }
-
-    @Override
-    public User handleOTP(User user) {
-        String input = "";
-        String otp = "1234";
-        int otpAttempts = 3;
-
-        while (otpAttempts > 0) {
-            System.out.println(AnsiColors.GREEN + "Sending OTP for the " + (3 - otpAttempts + 1) + " time. (" + otp + ")" + AnsiColors.RESET);
-            notificationService.sendOtp(user, otp);
-
-            while (true) {
-                System.out.println("Enter OTP: ");
-                System.out.println("Select OPT option\n1. Enter correct OTP\n2. Request new OTP\n3. Enter incorrect OTP\n");
-                input = inputScanner.nextLine();
-
-                switch (input) {
-                    case "1":
-                        System.out.println(AnsiColors.GREEN + "OTP is correct" + AnsiColors.RESET);
-                        user.setOtp(1234);
-                        return user;
-                    case "2":
-                        otpAttempts--;
-                        if (otpAttempts >= 1) {
-                            System.out.println("Requesting OTP again");
-                        } else {
-                            throw new CustomException("Login failed: Locking the account");
-                        }
-                        break;
-                    default:
-                        System.out.println(AnsiColors.RED + "Invalid OTP please try again" + AnsiColors.RESET);
-
-                }
-            }
-
-        }
-        throw new CustomException("OTP failed");
-    }
-
-    @Override
     public Customer verifyUser(Customer customer) {
         String input = "";
         boolean loopInput = true;
@@ -184,55 +126,13 @@ public class AuthServiceImpl extends AuthService {
         return customer;
     }
 
+
+
     @Override
-    public Customer selectLanguage(Customer customer) {
+    public User getCASAUserDetails(User user) throws CustomException {
         String input = "";
         boolean loopInput = true;
-
-        while (loopInput) {
-            System.out.println("Select your language\n1. English\n2. Sinhala\n");
-            input = inputScanner.nextLine();
-
-            switch (input) {
-                case "1":
-                    customer.setLanguage(Language.ENGLISH);
-                    loopInput = false;
-                    break;
-                case "2":
-                    customer.setLanguage(Language.SINHALA);
-                    loopInput = false;
-                    break;
-                default:
-                    System.out.println(AnsiColors.RED + "Invalid input please select again" + AnsiColors.RESET);
-
-            }
-        }
-
-        return customer;
-    }
-
-    @Override
-    public Customer takeNIC(Customer customer) {
-        String input = "";
-
-        while (true) {
-            System.out.println("Enter your NIC/Passport Number: ");
-            input = inputScanner.nextLine();
-
-            if (input.length() >= 5) {
-                customer.setNicPassportNumber(input);
-                return customer;
-
-            } else {
-                System.out.println(AnsiColors.RED + "NIC/Passport validation failed" + AnsiColors.RESET);
-            }
-        }
-    }
-
-    @Override
-    public Customer fetchCASACustomer(Customer customer) throws CustomException {
-        String input = "";
-        boolean loopInput = true;
+        Customer customer = (Customer) user;
 
         while (loopInput) {
             System.out.println("Enter your CASA Acc. Number: ");
