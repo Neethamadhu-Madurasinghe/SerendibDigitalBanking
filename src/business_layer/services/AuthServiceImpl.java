@@ -1,6 +1,7 @@
 package business_layer.services;
 
 import application_layer.AnsiColors;
+import business_layer.exceptions.CustomException;
 import data_layer.repository.CustomerRepository;
 import business_layer.Customer;
 import business_layer.Language;
@@ -15,23 +16,14 @@ import business_layer.verification.VerifyUsingCallCentre;
 import java.util.Optional;
 import java.util.Scanner;
 
-public class AuthServiceImpl implements AuthService {
-    Scanner inputScanner = new Scanner(System.in);
-    private CASAInterface CASASystem;
-    private NotificationService notificationService;
-    private IDGenerator idGenerator;
-    private CustomerRepository customerRepository;
+public class AuthServiceImpl extends AuthService {
 
-    public AuthServiceImpl(
-            CASAInterface CASASystem,
-            NotificationService notificationService,
-            IDGenerator idGenerator,
-            CustomerRepository customerRepository
-    ) {
-        this.CASASystem = CASASystem;
-        this.notificationService = notificationService;
-        this.idGenerator = idGenerator;
-        this.customerRepository = customerRepository;
+
+    public AuthServiceImpl(CASAInterface CASASystem,
+                           NotificationService notificationService,
+                           IDGenerator idGenerator,
+                           CustomerRepository customerRepository) {
+        super(CASASystem, notificationService, idGenerator, customerRepository);
     }
 
     @Override
@@ -43,107 +35,34 @@ public class AuthServiceImpl implements AuthService {
 
         System.out.println(AnsiColors.YELLOW + "=============== Registering customer ==============" + AnsiColors.RESET);
 
-        while(loopInput) {
-            System.out.println("Select your language\n1. English\n2. Sinhala\n");
-            input = inputScanner.nextLine();
-
-            switch (input) {
-                case "1":
-                    newCustomer.setLanguage(Language.ENGLISH);
-                    loopInput = false;
-                    break;
-                case "2":
-                    newCustomer.setLanguage(Language.SINHALA);
-                    loopInput = false;
-                    break;
-                default:
-                    System.out.println(AnsiColors.RED + "Invalid input please select again" + AnsiColors.RESET);
-
-            }
-        }
-
+        newCustomer = this.selectLanguage(newCustomer);
         System.out.println("You selected " + newCustomer.getLanguage());
 
-        loopInput = true;
+        newCustomer = this.takeNIC(newCustomer);
 
-        while(loopInput) {
-            System.out.println("Enter your NIC/Passport Number: ");
-            input = inputScanner.nextLine();
 
-//            Validation
-            if (input.length() >= 5) {
-                newCustomer.setNicPassportNumber(input);
-                loopInput = false;
-
-            } else {
-                System.out.println(AnsiColors.RED + "NIC/Passport validation failed" + AnsiColors.RESET);
-            }
-        }
-
-        loopInput = true;
-
-        while(loopInput) {
-            System.out.println("Enter your CASA Acc. Number: ");
-            input = inputScanner.nextLine();
-
-//            Validation
-            if (input.length() >= 5) {
-                try {
-                    CustomerData data = CASASystem.getCustomerDataByAccountNumber(input);
-                    newCustomer.setCASANumber(input);
-                    newCustomer.setName(data.name());
-                    newCustomer.setMobileNumber(data.phoneNumber());
-                    newCustomer.setEmail(data.email());
-                    loopInput = false;
-
-                } catch (Exception e) {
-                    System.out.println(AnsiColors.RED + "No such user !!" + AnsiColors.RESET);
-                }
-
-            } else {
-                System.out.println(AnsiColors.RED + "CASA Acc no. validation failed" + AnsiColors.RESET);
-            }
+        try {
+            newCustomer = this.fetchCASACustomer(newCustomer);
+        } catch (CustomException e) {
+            System.out.println(AnsiColors.RED + e.getMessage() + AnsiColors.RESET);
         }
 
 
-        if (!this.handleOTP(newCustomer)) {
+        try {
+            newCustomer = this.handleOTP(newCustomer);
+        } catch (CustomException e) {
+            System.out.println(AnsiColors.RED + e.getMessage() + AnsiColors.RESET);
             return null;
         }
 
-        loopInput = true;
+        newCustomer = this.verifyUser(newCustomer);
 
-//        Verification
-
-        while(loopInput) {
-            System.out.println("Select account verification method\n1. Contact Call Centre\n2. At a Serendib Branch\n");
-            input = inputScanner.nextLine();
-
-            switch (input) {
-                case "1":
-                    newCustomer.setVerificationStrategy(new VerifyUsingCallCentre());
-                    loopInput = false;
-                    break;
-                case "2":
-                    newCustomer.setVerificationStrategy(new VerifyUsingBranch());
-                    loopInput = false;
-                    break;
-                default:
-                    System.out.println(AnsiColors.RED + "Invalid input please select again" + AnsiColors.RESET);
-
-            }
-
-
-        }
-
-        newCustomer.verify();
-
-        loopInput = true;
 
         input = this.takeUsernameAndPassword();
         newCustomer.setUserName(input);
         newCustomer.setPassword(input);
 
-        while(loopInput) {
+        while (loopInput) {
             System.out.println("Enter display name: ");
             input = inputScanner.nextLine();
 
@@ -165,55 +84,19 @@ public class AuthServiceImpl implements AuthService {
         System.out.println("Ok now login using user name and password");
         System.out.println();
 
-//        Set customer's otp preference to Authenticator app randomly
+//        Set customer's otp preference to Authenticator app randomly - we can take it as an input if needed
         newCustomer.setOtpChannel(OTPChannel.AUTHENTICATOR_APP);
 
         this.customerRepository.saveCustomer(newCustomer);
         return login();
     }
 
-    @Override
-    public Customer login() {
-        System.out.println(AnsiColors.YELLOW + "=============== Login using 2FA ==============" + AnsiColors.RESET);
-
-
-        boolean loopInput = true;
-        String input = "";
-        Customer currentCustomer = null;
-
-        while(loopInput) {
-            String userName = this.takeUsernameAndPassword();
-            String password = userName;
-
-            Optional<Customer> optionalCustomer = this.customerRepository.getCustomerByUsernameAndPassword(userName, password);
-
-            if (optionalCustomer.isPresent()) {
-                currentCustomer = optionalCustomer.get();
-                System.out.println(AnsiColors.GREEN + "User found" + AnsiColors.RESET);
-                loopInput = false;
-            }
-            else {
-                System.out.println(AnsiColors.RED + "No User found" + AnsiColors.RESET);
-                return null;
-            }
-        }
-
-        if (!this.handleOTP(currentCustomer)) {
-            return null;
-        }
-
-        System.out.println(AnsiColors.GREEN + "Login successful" + AnsiColors.RESET);
-        System.out.println(AnsiColors.GREEN + "This is your dashboard" + AnsiColors.RESET);
-        System.out.println();
-
-        return currentCustomer;
-    }
 
     @Override
     public String takeUsernameAndPassword() {
         String input = "";
 
-        while(true) {
+        while (true) {
             System.out.println("Enter username and password: ");
             input = inputScanner.nextLine();
             String userName = input;
@@ -229,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean handleOTP(Customer currentCustomer) {
+    public Customer handleOTP(Customer currentCustomer) {
         String input = "";
         String otp = "1234";
         int otpAttempts = 3;
@@ -238,7 +121,7 @@ public class AuthServiceImpl implements AuthService {
             System.out.println(AnsiColors.GREEN + "Sending OTP for the " + (3 - otpAttempts + 1) + " time. (" + otp + ")" + AnsiColors.RESET);
             notificationService.sendOtp(currentCustomer, otp);
 
-            while(true) {
+            while (true) {
                 System.out.println("Enter OTP: ");
                 System.out.println("Select OPT option\n1. Enter correct OTP\n2. Request new OTP\n3. Enter incorrect OTP\n");
                 input = inputScanner.nextLine();
@@ -246,14 +129,14 @@ public class AuthServiceImpl implements AuthService {
                 switch (input) {
                     case "1":
                         System.out.println(AnsiColors.GREEN + "OTP is correct" + AnsiColors.RESET);
-                        return true;
+                        currentCustomer.setOtp(1234);
+                        return currentCustomer;
                     case "2":
                         otpAttempts--;
                         if (otpAttempts >= 1) {
                             System.out.println("Requesting OTP again");
                         } else {
-                            System.out.println(AnsiColors.RED + "Login failed: Locking the account" + AnsiColors.RESET);
-                            return false;
+                            throw new CustomException("Login failed: Locking the account");
                         }
                         break;
                     default:
@@ -263,7 +146,112 @@ public class AuthServiceImpl implements AuthService {
             }
 
         }
-        return false;
+        throw new CustomException("OTP failed");
+    }
+
+    @Override
+    public Customer verifyUser(Customer customer) {
+        String input = "";
+        boolean loopInput = true;
+
+        while (loopInput) {
+            System.out.println("Select account verification method\n1. Contact Call Centre\n2. At a Serendib Branch\n");
+            input = inputScanner.nextLine();
+
+            switch (input) {
+                case "1":
+                    customer.setVerificationStrategy(new VerifyUsingCallCentre());
+                    loopInput = false;
+                    break;
+                case "2":
+                    customer.setVerificationStrategy(new VerifyUsingBranch());
+                    loopInput = false;
+                    break;
+                default:
+                    System.out.println(AnsiColors.RED + "Invalid input please select again" + AnsiColors.RESET);
+            }
+
+        }
+
+        customer.verify();
+        return customer;
+    }
+
+    @Override
+    public Customer selectLanguage(Customer customer) {
+        String input = "";
+        boolean loopInput = true;
+
+        while (loopInput) {
+            System.out.println("Select your language\n1. English\n2. Sinhala\n");
+            input = inputScanner.nextLine();
+
+            switch (input) {
+                case "1":
+                    customer.setLanguage(Language.ENGLISH);
+                    loopInput = false;
+                    break;
+                case "2":
+                    customer.setLanguage(Language.SINHALA);
+                    loopInput = false;
+                    break;
+                default:
+                    System.out.println(AnsiColors.RED + "Invalid input please select again" + AnsiColors.RESET);
+
+            }
+        }
+
+        return customer;
+    }
+
+    @Override
+    public Customer takeNIC(Customer customer) {
+        String input = "";
+
+        while (true) {
+            System.out.println("Enter your NIC/Passport Number: ");
+            input = inputScanner.nextLine();
+
+            if (input.length() >= 5) {
+                customer.setNicPassportNumber(input);
+                return customer;
+
+            } else {
+                System.out.println(AnsiColors.RED + "NIC/Passport validation failed" + AnsiColors.RESET);
+            }
+        }
+    }
+
+    @Override
+    public Customer fetchCASACustomer(Customer customer) throws CustomException {
+        String input = "";
+        boolean loopInput = true;
+
+        while (loopInput) {
+            System.out.println("Enter your CASA Acc. Number: ");
+            input = inputScanner.nextLine();
+
+//            Validation
+            if (input.length() >= 5) {
+                try {
+                    CustomerData data = CASASystem.getCustomerDataByAccountNumber(input);
+                    customer.setCASANumber(input);
+                    customer.setName(data.name());
+                    customer.setMobileNumber(data.phoneNumber());
+                    customer.setEmail(data.email());
+                    loopInput = false;
+                    return customer;
+
+                } catch (CustomException e) {
+                    System.out.println(AnsiColors.RED + e.getMessage() + AnsiColors.RESET);
+                }
+
+            } else {
+                System.out.println(AnsiColors.RED + "CASA Acc no. validation failed" + AnsiColors.RESET);
+            }
+        }
+
+        throw new CustomException("Could not fetch CASA customer details");
     }
 
 

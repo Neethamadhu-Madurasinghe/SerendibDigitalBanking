@@ -1,6 +1,5 @@
 package application_layer;
 
-import business_layer.Customer;
 import data_layer.casa.CASAAdapter;
 import data_layer.casa.CASAInterface;
 import business_layer.services.AuthService;

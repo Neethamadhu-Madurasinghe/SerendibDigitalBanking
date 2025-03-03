@@ -1,5 +1,6 @@
 package data_layer.casa;
 
+import business_layer.exceptions.CustomException;
 import external_systems.CASACustomerData;
 import external_systems.CASASystem;
 
@@ -11,7 +12,7 @@ public class CASAAdapter implements CASAInterface {
     public CustomerData getCustomerDataByAccountNumber(String accountNumber) {
         List<CASACustomerData> customerDataList = CASASystem.getCASACustomerInformation(accountNumber);
 
-        if (customerDataList.size() == 0) throw new RuntimeException("No such user");
+        if (customerDataList.size() == 0) throw new CustomException("No such user");
         else return new CustomerData(
                 customerDataList.getFirst().name(),
                 customerDataList.getFirst().phoneNumber(),
