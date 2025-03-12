@@ -131,8 +131,10 @@ public abstract class AuthService implements IAuthService {
         while (otpAttempts > 0) {
             System.out.println(AnsiColors.GREEN + "Sending OTP for the " + (3 - otpAttempts + 1) + " time. (" + otp + ")" + AnsiColors.RESET);
             notificationService.sendOtp(user, otp);
+            boolean breakOut = false;
 
-            while (true) {
+            while (true && !breakOut) {
+                breakOut = false;
                 System.out.println("Enter OTP: ");
                 System.out.println("Select OPT option\n1. Enter correct OTP\n2. Request new OTP\n3. Enter incorrect OTP\n");
                 input = inputScanner.nextLine();
@@ -149,6 +151,7 @@ public abstract class AuthService implements IAuthService {
                         } else {
                             throw new CustomException("Login failed: Locking the account");
                         }
+                        breakOut = true;
                         break;
                     default:
                         System.out.println(AnsiColors.RED + "Invalid OTP please try again" + AnsiColors.RESET);
